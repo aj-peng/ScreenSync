@@ -3,7 +3,7 @@ local TweenService = game:GetService("TweenService")
 local ComponentGen = require(script.ComponentSync)
 local Def = require(script.Definitions)
 
-local FadeTween = TweenInfo.new(3, Enum.EasingStyle.Linear)
+local FadeTween = TweenInfo.new(4, Enum.EasingStyle.Linear)
 
 local ScreenGen: Def.ScreenGen = {} :: Def.ScreenGen
 ScreenGen.__index = ScreenGen
@@ -45,67 +45,71 @@ function ScreenGen:EnableSongSync()
 	end
 	
 	local currentSong : Sound = nil
-	local function OnPlay(song : Sound, baseVolume : number)
-		if currentSong == song then
-			return
+	local function OnPlay(song: Sound, volume: number, resume : boolean)
+		if resume then
+			song.Volume = volume
+		else
+			song.Volume = 0.1
+			local fadeInTween = TweenService:Create(song, FadeTween, {Volume = volume})
+			fadeInTween:Play()
 		end
-
-		if currentSong then
-			local muteSong = currentSong
-			local muteTween = TweenService:Create(muteSong, FadeTween, 
-				{
-					Volume = 0
-				}
-			)
-			muteTween:Play()
-			muteTween.Completed:Once(function()
-				muteTween:Destroy()
-				if muteSong ~= currentSong then
-					muteSong:Stop()
-				end
-			end)
-		end
-
-		song.Volume = 0.1
-		currentSong = song
-		local fadeInTween = TweenService:Create(song, FadeTween, {Volume = baseVolume})
-		fadeInTween:Play()
-
+		
+		
 		for _, compSync in self.componentIndex do
 			compSync:Sync(song)
 		end
 	end
-	
-	local function OnStop()
-		currentSong = nil
+	local function StopOtherSongs(current :Sound)
+		for _, song in songs do
+			if song ~= current and song.IsPlaying then
+				song:Pause()
+			end
+		end
+		
+		for _, compSync in self.componentIndex do
+			ResetComponent(compSync)
+		end
+	end
+	local function OnStop(song : Sound)
+		if currentSong == song then
+			currentSong = nil
+		end
+		
 		for _, compSync in self.componentIndex do
 			ResetComponent(compSync)
 		end
 	end
 	
-	
 	for _, song : Sound in songs do
 		if song:IsA("Sound") then
-			local baseVolume = song.Volume
+			local volume = song.Volume
 			song.Volume = 0
 			
 			table.insert(self.connections, 
-				song.Paused:Connect(OnStop)
+				song.Paused:Connect(function()
+					OnStop(song)
+				end)
 			)
 			table.insert(self.connections,
-				song.Stopped:Connect(OnStop)
+				song.Stopped:Connect(function()
+					OnStop(song)
+				end)
 			)
 			table.insert(self.connections,
-				song.Ended:Connect(OnStop)
+				song.Ended:Connect(function()
+					OnStop(song)
+				end)
 			)
 			table.insert(self.connections,
 				song.Played:Connect(function()
-					OnPlay(song, baseVolume)
+					StopOtherSongs(song)
+					OnPlay(song, volume, false)
 				end)
 			)
 			table.insert(self.connections,
 				song.Resumed:Connect(function()
-					OnPlay(song, baseVolume)
+					StopOtherSongs(song)
+					OnPlay(song, volume, true)
 				end)
 			)
 		end

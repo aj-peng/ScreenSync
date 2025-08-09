@@ -26,7 +26,7 @@
 	comp1Sync:Enable(true, false, scale)
 	comp2Sync:Enable(true, false, scale)
 
-  --Song playing logic below.
+	--Song playing logic below. Only use Song:Play() to start a new sync. Song:Stop()/:Pause() is unnecessary.
 	--Have fun!
 	
 ]]--

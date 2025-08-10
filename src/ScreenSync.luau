@@ -3,8 +3,6 @@ local TweenService = game:GetService("TweenService")
 local ComponentGen = require(script.ComponentSync)
 local Def = require(script.Definitions)
 
-local FadeTween = TweenInfo.new(4, Enum.EasingStyle.Linear)
-
 local ScreenGen: Def.ScreenGen = {} :: Def.ScreenGen
 ScreenGen.__index = ScreenGen
 
@@ -45,16 +43,7 @@ function ScreenGen:EnableSongSync()
 	end
 	
 	local currentSong : Sound = nil
-	local function OnPlay(song: Sound, volume: number, resume : boolean)
-		if resume then
-			song.Volume = volume
-		else
-			song.Volume = 0.1
-			local fadeInTween = TweenService:Create(song, FadeTween, {Volume = volume})
-			fadeInTween:Play()
-		end
-		
-		
+	local function OnPlay(song: Sound, volume: number)
 		for _, compSync in self.componentIndex do
 			compSync:Sync(song)
 		end
@@ -103,13 +92,13 @@ function ScreenGen:EnableSongSync()
 			table.insert(self.connections,
 				song.Played:Connect(function()
 					StopOtherSongs(song)
-					OnPlay(song, volume, false)
+					OnPlay(song, volume)
 				end)
 			)
 			table.insert(self.connections,
 				song.Resumed:Connect(function()
 					StopOtherSongs(song)
-					OnPlay(song, volume, true)
+					OnPlay(song, volume)
 				end)
 			)
 		end

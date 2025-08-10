@@ -4,7 +4,6 @@ local Def = require(script.Parent.Definitions)
 
 local AlphaTween =  TweenInfo.new(0.05, Enum.EasingStyle.Bounce)
 local SizeTween = TweenInfo.new(0.05, Enum.EasingStyle.Bounce)
-local FadeTween = TweenInfo.new(3, Enum.EasingStyle.Linear)
 
 local ComponentGen: Def.ComponentGen = {} :: Def.ComponentGen
 ComponentGen.__index = ComponentGen
@@ -40,7 +39,7 @@ function ComponentGen:Sync(song : Sound)
 			local conversion = 5_000
 			while song.IsPlaying and self.guiSync do
 				local loudness = song.PlaybackLoudness
-				local converted = loudness / conversion * (song.Volume)
+				local converted = loudness / conversion --* (song.Volume)
 
 				local newXScale = baseSize.X.Scale + converted * scale
 				local newYScale = baseSize.Y.Scale + converted * scale

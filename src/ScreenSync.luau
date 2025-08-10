@@ -43,62 +43,50 @@ function ScreenGen:EnableSongSync()
 	end
 	
 	local currentSong : Sound = nil
-	local function OnPlay(song: Sound, volume: number)
+	local function UnsyncComponents()
+		for _, compSync in self.componentIndex do
+			ResetComponent(compSync)
+		end
+	end
+	local function SyncComponents(song: Sound)
+		UnsyncComponents()
+		currentSong = song
 		for _, compSync in self.componentIndex do
 			compSync:Sync(song)
 		end
 	end
-	local function StopOtherSongs(current :Sound)
-		for _, song in songs do
-			if song ~= current and song.IsPlaying then
-				song:Pause()
-			end
-		end
-		
-		for _, compSync in self.componentIndex do
-			ResetComponent(compSync)
-		end
-	end
-	local function OnStop(song : Sound)
-		if currentSong == song then
-			currentSong = nil
-		end
-		
-		for _, compSync in self.componentIndex do
-			ResetComponent(compSync)
-		end
-	end
 	
 	for _, song : Sound in songs do
-		if song:IsA("Sound") then
-			local volume = song.Volume
-			song.Volume = 0
-			
+		if song:IsA("Sound") then	
 			table.insert(self.connections, 
 				song.Paused:Connect(function()
-					OnStop(song)
+					if currentSong == song then
+						UnsyncComponents()
+					end
 				end)
 			)
 			table.insert(self.connections,
 				song.Stopped:Connect(function()
-					OnStop(song)
+					if currentSong == song then
+						UnsyncComponents()
+					end
 				end)
 			)
 			table.insert(self.connections,
 				song.Ended:Connect(function()
-					OnStop(song)
+					if currentSong == song then
+						UnsyncComponents()
+					end
 				end)
 			)
 			table.insert(self.connections,
 				song.Played:Connect(function()
-					StopOtherSongs(song)
-					OnPlay(song, volume)
+					SyncComponents(song)
 				end)
 			)
 			table.insert(self.connections,
 				song.Resumed:Connect(function()
-					StopOtherSongs(song)
-					OnPlay(song, volume)
+					SyncComponents(song)
 				end)
 			)
 		end

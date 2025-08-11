@@ -57,6 +57,10 @@ function ComponentGen:Sync(song : Sound)
 				self.currentSizeTween:Play()
 				task.wait()
 			end
+			if self.currentSizeTween then
+				self.currentSizeTween:Cancel()
+				self.currentSizeTween:Destroy()
+			end
 		end)
 	end
 	if self.syncTransparency then
@@ -79,6 +83,10 @@ function ComponentGen:Sync(song : Sound)
 				self.currentAlphaTween = TweenService:Create(component, AlphaTween, {Transparency = newTransparency})
 				self.currentAlphaTween:Play()
 				task.wait()
+			end
+			if self.currentAlphaTween then
+				self.currentAlphaTween:Cancel()
+				self.currentAlphaTween:Destroy()
 			end
 		end)
 	end

@@ -126,9 +126,8 @@ end
 
 function ComponentGen:Destroy()
 	self:Disable()
-	setmetatable(self, nil)
-	table.clear(self)
-	
+	setmetatable(self :: any, nil)
+
 	return nil
 end
 

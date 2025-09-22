@@ -104,8 +104,7 @@ function ScreenGen:Destroy()
 		compSync:Destroy()
 	end
 	
-	setmetatable(self, nil)
-	table.clear(self)
+	setmetatable(self :: any, nil)
 	
 	return nil
 end
